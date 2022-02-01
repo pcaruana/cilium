@@ -214,6 +214,9 @@ type K8sWatcher struct {
 
 	nodeStore cache.Store
 
+	ciliumNodeStoreMU lock.Mutex
+	ciliumNodeStore   cache.Store
+
 	namespaceStore cache.Store
 	datapath       datapath.Datapath
 
