@@ -70,6 +70,15 @@ serviceAccounts:
     name: hubble-generate-certs
     annotations: {}
 
+# -- Configure termination grace period for components.
+terminationGracePeriods:
+  cilium:
+    seconds: 1
+  preflight:
+    seconds: 1
+  relay:
+    seconds: 0
+
 # -- Install the cilium agent resources.
 agent: true
 

@@ -1401,6 +1401,10 @@
      - interval between checks of the startup probe
      - int
      - ``2``
+   * - terminationGracePeriods
+     - Configure termination grace period for components.
+     - object
+     - ``{"cilium":{"seconds":1},"preflight":{"seconds":1},"relay":{"seconds":0}}``
    * - tls
      - Configure TLS configuration in the agent.
      - object

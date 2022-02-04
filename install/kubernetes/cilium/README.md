@@ -401,6 +401,7 @@ contributors across the globe, there is almost always someone available to help.
 | sockops | object | `{"enabled":false}` | Configure BPF socket operations configuration |
 | startupProbe.failureThreshold | int | `105` | failure threshold of startup probe. 105 x 2s translates to the old behaviour of the readiness probe (120s delay + 30 x 3s) |
 | startupProbe.periodSeconds | int | `2` | interval between checks of the startup probe |
+| terminationGracePeriods | object | `{"cilium":{"seconds":1},"preflight":{"seconds":1},"relay":{"seconds":0}}` | Configure termination grace period for components. |
 | tls | object | `{"enabled":true,"secretsBackend":"local"}` | Configure TLS configuration in the agent. |
 | tolerations | list | `[{"operator":"Exists"}]` | Node tolerations for agent scheduling to nodes with taints ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/ |
 | tunnel | string | `"vxlan"` | Configure the encapsulation configuration for communication between nodes. Possible values:   - disabled   - vxlan (default)   - geneve |
