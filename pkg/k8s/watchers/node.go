@@ -24,9 +24,13 @@ import (
 	ciliumio "github.com/cilium/cilium/pkg/k8s/apis/cilium.io"
 	cilium_v2 "github.com/cilium/cilium/pkg/k8s/apis/cilium.io/v2"
 	"github.com/cilium/cilium/pkg/k8s/informer"
+	slim_corev1 "github.com/cilium/cilium/pkg/k8s/slim/k8s/api/core/v1"
 	"github.com/cilium/cilium/pkg/lock"
 	"github.com/cilium/cilium/pkg/logging/logfields"
+	nodestore "github.com/cilium/cilium/pkg/node/store"
 	nodeTypes "github.com/cilium/cilium/pkg/node/types"
+	"github.com/cilium/cilium/pkg/option"
+	"github.com/cilium/cilium/pkg/source"
 )
 
 var (
@@ -127,22 +131,24 @@ func (k *K8sWatcher) GetK8sNode(_ context.Context, nodeName string) (*v1.Node, e
 // CiliumNodeLabelsUpdater implements the subscriber.Node interface and is used
 // to keep CiliumNode objects labels in sync with the node ones.
 type CiliumNodeLabelsUpdater struct {
-	k8sWatcher *K8sWatcher
+	k8sWatcher    *K8sWatcher
+	nodeRegistrar *nodestore.NodeRegistrar
 }
 
-func NewCiliumNodeLabelsUpdater(k8sWatcher *K8sWatcher) *CiliumNodeLabelsUpdater {
+func NewCiliumNodeLabelsUpdater(k8sWatcher *K8sWatcher, nodeRegistrar *nodestore.NodeRegistrar) *CiliumNodeLabelsUpdater {
 	return &CiliumNodeLabelsUpdater{
-		k8sWatcher: k8sWatcher,
+		k8sWatcher:    k8sWatcher,
+		nodeRegistrar: nodeRegistrar,
 	}
 }
 
 func (u *CiliumNodeLabelsUpdater) OnAddNode(newNode *v1.Node, swg *lock.StoppableWaitGroup) error {
-	u.updateCiliumNodeLabels(newNode)
+	u.updateCiliumNodeLabels(u.nodeRegistrar, newNode)
 	return nil
 }
 
 func (u *CiliumNodeLabelsUpdater) OnUpdateNode(oldNode, newNode *v1.Node, swg *lock.StoppableWaitGroup) error {
-	u.updateCiliumNodeLabels(newNode)
+	u.updateCiliumNodeLabels(u.nodeRegistrar, newNode)
 	return nil
 }
 
@@ -150,7 +156,7 @@ func (u *CiliumNodeLabelsUpdater) OnDeleteNode(*v1.Node, *lock.StoppableWaitGrou
 	return nil
 }
 
-func (u *CiliumNodeLabelsUpdater) updateCiliumNodeLabels(node *v1.Node) {
+func (u *CiliumNodeLabelsUpdater) updateCiliumNodeLabels(nodeRegistrar *nodestore.NodeRegistrar, node *v1.Node) {
 	var (
 		nodeName   = node.Name
 		nodeLabels = node.GetLabels()
@@ -165,6 +171,31 @@ func (u *CiliumNodeLabelsUpdater) updateCiliumNodeLabels(node *v1.Node) {
 	k8sCM.UpdateController(controllerName,
 		controller.ControllerParams{
 			DoFunc: func(ctx context.Context) (err error) {
+				if option.Config.KVStore != "" {
+					return nil
+
+					nodeInterface := k8s.ConvertToNode(node)
+					if nodeInterface == nil {
+						// This will never happen and the GetNode on line 63 will be soon
+						// make a request from the local store instead.
+						return fmt.Errorf("invalid k8s node: %s", node)
+					}
+					typesNode := nodeInterface.(*slim_corev1.Node)
+					n := k8s.ParseNode(typesNode, source.Unspec)
+
+					//fmt.Printf("registrar: %+v", nodeRegistrar)
+
+					if nodeRegistrar.SharedStore == nil {
+						return fmt.Errorf("node registrar is not yet initialized")
+					}
+
+					if err := nodeRegistrar.UpdateLocalKeySync(n); err != nil {
+						return err
+					}
+
+					return nil
+				}
+
 				u.k8sWatcher.ciliumNodeStoreMU.Lock()
 				if u.k8sWatcher.ciliumNodeStore == nil {
 					u.k8sWatcher.ciliumNodeStoreMU.Unlock()

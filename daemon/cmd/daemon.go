@@ -528,7 +528,7 @@ func NewDaemon(ctx context.Context, cancel context.CancelFunc, epMgr *endpointma
 		d.k8sWatcher.NodeChain.Register(&d.k8sWatcher.K8sSvcCache)
 	}
 
-	d.k8sWatcher.NodeChain.Register(watchers.NewCiliumNodeLabelsUpdater(d.k8sWatcher))
+	d.k8sWatcher.NodeChain.Register(watchers.NewCiliumNodeLabelsUpdater(d.k8sWatcher, &d.nodeDiscovery.Registrar))
 
 	d.redirectPolicyManager.RegisterSvcCache(&d.k8sWatcher.K8sSvcCache)
 	d.redirectPolicyManager.RegisterGetStores(d.k8sWatcher)

@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -320,6 +321,7 @@ func (n *NodeDiscovery) UpdateCiliumNodeResource() {
 					log.WithError(err).Warn("Unable to update CiliumNode resource, will retry")
 					continue
 				}
+				debug.PrintStack()
 				log.WithError(err).Fatal("Unable to update CiliumNode resource")
 			} else {
 				return
