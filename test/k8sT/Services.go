@@ -88,10 +88,8 @@ var _ = SkipDescribeIf(helpers.RunsOn54Kernel, "K8sServicesTest", func() {
 				yamls = append(yamls, path)
 			}
 
-			// Wait for all app1, app2 and app3 pods to be in ready state.
-			err := kubectl.WaitforPods(helpers.DefaultNamespace, "-l zgroup=testapp", helpers.HelperTimeout)
-			Expect(err).Should(BeNil())
-			err = kubectl.WaitforPods(helpers.DefaultNamespace, "-l name=echo", helpers.HelperTimeout)
+			// Wait for all pods to be in ready state.
+			err := kubectl.WaitforPods(helpers.DefaultNamespace, "", helpers.HelperTimeout)
 			Expect(err).Should(BeNil())
 
 			demoPolicyL7 = helpers.ManifestGet(kubectl.BasePath(), "l7-policy-demo.yaml")
@@ -520,7 +518,9 @@ Secondary Interface %s :: IPv4: (%s, %s), IPv6: (%s, %s)`,
 				helpers.SecondaryIface, ni.SecondaryK8s1IPv4, ni.SecondaryK8s2IPv4,
 				ni.SecondaryK8s1IPv6, ni.SecondaryK8s2IPv6)
 
-			waitPodsDs(kubectl, []string{testDS, testDSClient, testDSK8s2, echoPodLabel})
+			// Wait for all pods to be in ready state.
+			err := kubectl.WaitforPods(helpers.DefaultNamespace, "", helpers.HelperTimeout)
+			Expect(err).Should(BeNil())
 		})
 
 		AfterAll(func() {
