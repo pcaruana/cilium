@@ -13,7 +13,7 @@ Pygments==2.7.4
 pytz==2018.7
 PyYAML==5.4
 recommonmark==0.4.0
-requests==2.25.1
+requests==2.32.0
 semver==2.9.0
 six==1.15.0
 snowballstemmer==1.2.1
