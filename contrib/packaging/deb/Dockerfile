@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:xenial-20210114
 
 LABEL maintainer "Eloy Coto <eloy.coto@gmail.com>"
 ENV GOLANG_VERSION 1.9
