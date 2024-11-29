@@ -32,3 +32,4 @@ typing==3.6.6
 urllib3==1.26.5
 yamllint==1.22.0
 rstcheck==3.3.1
+tornado>=6.4.2 # not directly required, pinned by Snyk to avoid a vulnerability
